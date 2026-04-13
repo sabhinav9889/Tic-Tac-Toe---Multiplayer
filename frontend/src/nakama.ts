@@ -2,7 +2,7 @@ import { Client } from '@heroiclabs/nakama-js';
 import type { Session, Socket } from '@heroiclabs/nakama-js';
 
 const useSSL = false;
-export const nakamaClient = new Client("defaultkey", "127.0.0.1", "7350", useSSL);
+export const nakamaClient = new Client("defaultkey", "34.93.172.131", "7350", useSSL);
 export let nakamaSession: Session | null = null;
 export let nakamaSocket: Socket | null = null;
 
