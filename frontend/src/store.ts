@@ -13,6 +13,8 @@ export interface GameState {
     board: (Mark | null)[];
     marks: Record<string, Mark | null>;
     ourMark: Mark;
+    ourUsername: string;
+    opponentUsername: string;
     currentTurn: Mark;
     deadline: number;
     winner: Mark | null;
@@ -30,6 +32,8 @@ export const useGameStore = create<GameState>((set) => ({
     board: Array(9).fill(null),
     marks: {},
     ourMark: Mark.UNDEFINED,
+    ourUsername: '',
+    opponentUsername: '',
     currentTurn: Mark.UNDEFINED,
     deadline: 0,
     winner: null,
@@ -47,6 +51,8 @@ export const useGameStore = create<GameState>((set) => ({
         board: Array(9).fill(null),
         marks: {},
         ourMark: Mark.UNDEFINED,
+        ourUsername: '',
+        opponentUsername: '',
         currentTurn: Mark.UNDEFINED,
         deadline: 0,
         winner: null,
@@ -61,7 +67,7 @@ export const useGameStore = create<GameState>((set) => ({
 export const sendMove = (position: number) => {
     const { match } = useGameStore.getState();
     if (match && nakamaSocket) {
-        nakamaSocket.sendMatchState(match.match_id, 4, JSON.stringify({ position })); // 4 is OpCode.MOVE
+        nakamaSocket.sendMatchState(match.match_id, 4, JSON.stringify({ position }));
     }
 };
 
@@ -69,6 +75,6 @@ export const sendRematch = () => {
     const { match } = useGameStore.getState();
     if (match && nakamaSocket) {
         useGameStore.getState().updateState({ rematchRequested: true });
-        nakamaSocket.sendMatchState(match.match_id, 8, ""); // 8 is OpCode.REMATCH
+        nakamaSocket.sendMatchState(match.match_id, 8, "");
     }
 };

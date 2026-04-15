@@ -3,12 +3,16 @@ import { authenticate, nakamaSession, nakamaSocket, nakamaClient } from './nakam
 import { useGameStore, sendMove, sendRematch, Mark } from './store';
 import './index.css';
 
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,16}$/;
+
 function App() {
   const [authStatus, setAuthStatus] = useState<"idle" | "loading" | "authenticated">("idle");
   const [matchmaking, setMatchmaking] = useState(false);
   const [timerText, setTimerText] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [usernameInput, setUsernameInput] = useState(() => localStorage.getItem("ttt_username") || "");
+  const [usernameError, setUsernameError] = useState("");
 
   const state = useGameStore();
 
@@ -21,13 +25,12 @@ function App() {
   }, [authStatus, state.match]);
 
   useEffect(() => {
-    // Timer Loop
     const interval = setInterval(() => {
       if (state.playing && state.deadline > 0) {
         const now = Math.floor(Date.now() / 1000);
         const remaining = state.deadline - now;
         if (remaining > 0) {
-          setTimerText(`Time remaining: ${remaining}s`);
+          setTimerText(`${remaining}s`);
         } else {
           setTimerText("Time's up!");
         }
@@ -39,16 +42,24 @@ function App() {
   }, [state.playing, state.deadline]);
 
   const handleLogin = async () => {
+    const trimmed = usernameInput.trim();
+    if (!USERNAME_REGEX.test(trimmed)) {
+      setUsernameError("3\u201316 characters, letters, numbers, or underscores only");
+      return;
+    }
+    setUsernameError("");
+
     try {
       setAuthStatus("loading");
-      const session = await authenticate();
+      localStorage.setItem("ttt_username", trimmed);
+      const session = await authenticate(trimmed);
 
-      // Setup socket listeners
+      useGameStore.getState().updateState({ ourUsername: session.username || trimmed });
+
       nakamaSocket!.onmatchdata = (result) => {
         const opCode = result.op_code;
         const data = result.data ? JSON.parse(new TextDecoder().decode(result.data)) : null;
 
-        // 1 = START, 2 = UPDATE, 3 = DONE
         if (opCode === 1) {
           const ourMark = data.marks[session.user_id as string] || Mark.UNDEFINED;
           useGameStore.getState().updateState({
@@ -64,6 +75,24 @@ function App() {
             winnerPositions: null,
           });
           setMatchmaking(false);
+
+          // Look up opponent username
+          const opponentId = Object.keys(data.marks).find(id => id !== session.user_id);
+          if (opponentId) {
+            if (opponentId === "ai-user-id") {
+              useGameStore.getState().updateState({ opponentUsername: "AI Bot" });
+            } else {
+              nakamaClient.getUsers(nakamaSession!, [opponentId])
+                .then(res => {
+                  const opponent = res.users?.[0];
+                  const name = opponent?.username || opponentId.substring(0, 8);
+                  useGameStore.getState().updateState({ opponentUsername: name });
+                })
+                .catch(() => {
+                  useGameStore.getState().updateState({ opponentUsername: opponentId.substring(0, 8) });
+                });
+            }
+          }
         } else if (opCode === 2) {
           useGameStore.getState().updateState({
             board: data.board,
@@ -137,7 +166,6 @@ function App() {
 
   const handleCellClick = (index: number) => {
     if (!state.playing || state.board[index] !== null || state.currentTurn !== state.ourMark) return;
-    // Optimistic update
     const newBoard = [...state.board];
     newBoard[index] = state.ourMark;
     useGameStore.getState().updateState({ board: newBoard });
@@ -151,7 +179,26 @@ function App() {
         <div className="glass-panel">
           <h1>LILA TIC-TAC-TOE</h1>
           <p>Multiplayer Server Authoritative Arena</p>
-          <button className="btn-primary" onClick={handleLogin}>
+          <div className="username-field">
+            <input
+              type="text"
+              className="username-input"
+              placeholder="Enter username"
+              value={usernameInput}
+              onChange={(e) => {
+                setUsernameInput(e.target.value);
+                setUsernameError("");
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleLogin(); }}
+              maxLength={16}
+            />
+            {usernameError && <span className="username-error">{usernameError}</span>}
+          </div>
+          <button
+            className="btn-primary"
+            onClick={handleLogin}
+            disabled={authStatus === 'loading'}
+          >
             {authStatus === 'loading' ? 'Authenticating...' : 'Enter Arena'}
           </button>
         </div>
@@ -231,7 +278,7 @@ function App() {
     <div className="game-container">
       <div className="header-info">
         <div className="player-info">
-          <span>You</span>
+          <span className="player-name">{state.ourUsername || 'You'}</span>
           <span className="player-score" style={{ color: state.ourMark === Mark.X ? 'var(--mark-x)' : 'var(--mark-o)' }}>
             {state.ourMark === Mark.X ? 'X' : 'O'}
           </span>
@@ -255,7 +302,7 @@ function App() {
         </div>
 
         <div className="player-info">
-          <span>Opponent</span>
+          <span className="player-name">{state.opponentUsername || 'Opponent'}</span>
           <span className="player-score" style={{ color: state.ourMark === Mark.X ? 'var(--mark-o)' : 'var(--mark-x)' }}>
             {state.ourMark === Mark.X ? 'O' : 'X'}
           </span>

@@ -9,15 +9,14 @@ export const nakamaClient = new Client("defaultkey", host, port, useSSL);
 export let nakamaSession: Session | null = null;
 export let nakamaSocket: Socket | null = null;
 
-export const authenticate = async (): Promise<Session> => {
+export const authenticate = async (username: string): Promise<Session> => {
     let deviceId = localStorage.getItem("device_id");
     if (!deviceId) {
         deviceId = crypto.randomUUID();
         localStorage.setItem("device_id", deviceId);
     }
 
-    // We'll use the deviceId as the username for simplicity in testing
-    nakamaSession = await nakamaClient.authenticateDevice(deviceId, true, deviceId.substring(0, 8));
+    nakamaSession = await nakamaClient.authenticateDevice(deviceId, true, username);
     nakamaSocket = nakamaClient.createSocket(useSSL, false);
     await nakamaSocket.connect(nakamaSession, true);
     return nakamaSession;
