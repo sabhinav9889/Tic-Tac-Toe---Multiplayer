@@ -14,11 +14,13 @@
 
 const rpcIdRewards = 'rewards_js';
 const rpcIdFindMatch = 'find_match_js';
+const rpcIdCreateMatch = 'create_match_js';
 
 function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer) {
     initializer.registerRpc(rpcIdRewards, rpcReward);
 
     initializer.registerRpc(rpcIdFindMatch, rpcFindMatch);
+    initializer.registerRpc(rpcIdCreateMatch, rpcCreateMatch);
 
     initializer.registerMatch(moduleName, {
         matchInit,
@@ -29,6 +31,12 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
         matchTerminate,
         matchSignal,
     });
+
+    try {
+        nk.leaderboardCreate('tictactoe_wins', false, nkruntime.SortOrder.DESCENDING, nkruntime.Operator.INCREMENTAL, null, null);
+    } catch (e) {
+        logger.error('leaderboard create error: %q', e);
+    }
 
     logger.info('JavaScript logic loaded.');
 }

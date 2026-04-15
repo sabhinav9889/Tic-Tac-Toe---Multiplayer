@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 // Copyright 2023 The Nakama Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,9 +104,11 @@ function aiTurn(state, logger, nk) {
 // limitations under the License.
 var rpcIdRewards = 'rewards_js';
 var rpcIdFindMatch = 'find_match_js';
+var rpcIdCreateMatch = 'create_match_js';
 function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc(rpcIdRewards, rpcReward);
     initializer.registerRpc(rpcIdFindMatch, rpcFindMatch);
+    initializer.registerRpc(rpcIdCreateMatch, rpcCreateMatch);
     initializer.registerMatch(moduleName, {
         matchInit: matchInit,
         matchJoinAttempt: matchJoinAttempt,
@@ -105,6 +118,12 @@ function InitModule(ctx, logger, nk, initializer) {
         matchTerminate: matchTerminate,
         matchSignal: matchSignal,
     });
+    try {
+        nk.leaderboardCreate('tictactoe_wins', false, "descending" /* nkruntime.SortOrder.DESCENDING */, "increment" /* nkruntime.Operator.INCREMENTAL */, null, null);
+    }
+    catch (e) {
+        logger.error('leaderboard create error: %q', e);
+    }
     logger.info('JavaScript logic loaded.');
 }
 // Copyright 2020 The Nakama Authors
@@ -231,6 +250,8 @@ var OpCode;
     OpCode[OpCode["OPPONENT_LEFT"] = 6] = "OPPONENT_LEFT";
     // Invite AI player to join instead of the opponent who left the game.
     OpCode[OpCode["INVITE_AI"] = 7] = "INVITE_AI";
+    // A player wants to rematch.
+    OpCode[OpCode["REMATCH"] = 8] = "REMATCH";
 })(OpCode || (OpCode = {}));
 // Copyright 2020 The Nakama Authors
 //
@@ -286,6 +307,7 @@ var matchInit = function (ctx, logger, nk, params) {
         nextGameRemainingTicks: 0,
         ai: ai,
         aiMessage: null,
+        rematchRequests: {},
     };
     if (ai) {
         state.presences[aiUserId] = aiPresence;
@@ -431,6 +453,7 @@ var matchLoop = function (ctx, logger, nk, dispatcher, tick, state, messages) {
         // We can start a game! Set up the game state and assign the marks to each player.
         state.playing = true;
         state.board = [null, null, null, null, null, null, null, null, null];
+        state.rematchRequests = {};
         state.marks = {};
         var marks_1 = [Mark.X, Mark.O];
         Object.keys(state.presences).forEach(function (userId) {
@@ -510,8 +533,13 @@ var matchLoop = function (ctx, logger, nk, dispatcher, tick, state, messages) {
                 if (tie) {
                     // Update state to reflect the tie, and schedule the next game.
                     state.playing = false;
+                    state.winner = Mark.UNDEFINED;
+                    state.winnerPositions = null;
                     state.deadlineRemainingTicks = 0;
                     state.nextGameRemainingTicks = delaybetweenGamesSec * tickRate;
+                }
+                if (state.playing === false) {
+                    updateWinnerLeaderboard(nk, logger, state);
                 }
                 var opCode = void 0;
                 var outgoingMsg = void 0;
@@ -566,6 +594,40 @@ var matchLoop = function (ctx, logger, nk, dispatcher, tick, state, messages) {
                 }
                 logger.info('AI player joined match');
                 break;
+            case OpCode.REMATCH:
+                if (state.playing) {
+                    dispatcher.broadcastMessage(OpCode.REJECTED, null, [message.sender]);
+                    return "continue";
+                }
+                logger.debug('Received rematch request from user: %s', message.sender.userId);
+                state.rematchRequests[message.sender.userId] = true;
+                // Check if all active humans have requested a rematch
+                var activeHumanUserIds = Object.keys(state.presences).filter(function (uid) { return uid !== aiUserId && state.presences[uid] !== null; });
+                var allRequested = activeHumanUserIds.every(function (uid) { return state.rematchRequests[uid] === true; });
+                if (allRequested && activeHumanUserIds.length >= 2) {
+                    logger.debug('All players agreed to rematch. Starting new game.');
+                    state.playing = true;
+                    state.board = [null, null, null, null, null, null, null, null, null];
+                    state.rematchRequests = {};
+                    state.winner = Mark.UNDEFINED;
+                    state.winnerPositions = null;
+                    state.deadlineRemainingTicks = calculateDeadlineTicks(state.label);
+                    state.nextGameRemainingTicks = 0;
+                    // Swap marks for fairness
+                    var oldMarks_1 = __assign({}, state.marks);
+                    Object.keys(oldMarks_1).forEach(function (uid) {
+                        state.marks[uid] = oldMarks_1[uid] === Mark.X ? Mark.O : Mark.X;
+                    });
+                    state.mark = Mark.X;
+                    var startMsg = {
+                        board: state.board,
+                        marks: state.marks,
+                        mark: state.mark,
+                        deadline: t + Math.floor(state.deadlineRemainingTicks / tickRate),
+                    };
+                    dispatcher.broadcastMessage(OpCode.START, JSON.stringify(startMsg));
+                }
+                break;
             default:
                 // No other opcodes are expected from the client, so automatically treat it as an error.
                 dispatcher.broadcastMessage(OpCode.REJECTED, null, [message.sender]);
@@ -586,6 +648,7 @@ var matchLoop = function (ctx, logger, nk, dispatcher, tick, state, messages) {
             state.winner = state.mark === Mark.O ? Mark.X : Mark.O;
             state.deadlineRemainingTicks = 0;
             state.nextGameRemainingTicks = delaybetweenGamesSec * tickRate;
+            updateWinnerLeaderboard(nk, logger, state);
             var msg = {
                 board: state.board,
                 winner: state.winner,
@@ -635,6 +698,22 @@ function connectedPlayers(s) {
         }
     }
     return count;
+}
+function updateWinnerLeaderboard(nk, logger, state) {
+    var _a;
+    if (state.winner === Mark.UNDEFINED || state.winner === null)
+        return;
+    for (var userId in state.marks) {
+        if (state.marks[userId] === state.winner && userId !== aiUserId) {
+            try {
+                var username = ((_a = state.presences[userId]) === null || _a === void 0 ? void 0 : _a.username) || userId;
+                nk.leaderboardRecordWrite('tictactoe_wins', userId, username, 1);
+            }
+            catch (e) {
+                logger.error('leaderboard write error: %q', e);
+            }
+        }
+    }
 }
 // Copyright 2020 The Nakama Authors
 //
@@ -695,4 +774,36 @@ var rpcFindMatch = function (ctx, logger, nk, payload) {
     }
     var res = { matchIds: matchIds };
     return JSON.stringify(res);
+};
+// Copyright 2020 The Nakama Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+var rpcCreateMatch = function (ctx, logger, nk, payload) {
+    if (!ctx.userId) {
+        throw Error('No user ID in context');
+    }
+    if (!payload) {
+        throw Error('Expects payload.');
+    }
+    var request = {};
+    try {
+        request = JSON.parse(payload);
+    }
+    catch (error) {
+        logger.error('Error parsing json message: %q', error);
+        throw error;
+    }
+    var matchId = nk.matchCreate(moduleName, { fast: request.fast, private: true });
+    var response = { matchId: matchId };
+    return JSON.stringify(response);
 };

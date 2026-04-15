@@ -5,7 +5,8 @@
     "./daily_rewards.ts",
     "./messages.ts",
     "./match_handler.ts",
-    "./match_rpc.ts"
+    "./match_rpc.ts",
+    "./rpc_create_match.ts"
   ],
   "compilerOptions": {
     "target": "es5",

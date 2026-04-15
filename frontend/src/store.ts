@@ -18,6 +18,8 @@ export interface GameState {
     winner: Mark | null;
     winnerPositions: number[] | null;
     playing: boolean;
+    rematchRequested: boolean;
+    opponentRematchRequested: boolean;
     match: Match | null;
     setMatch: (match: Match | null) => void;
     updateState: (update: Partial<GameState>) => void;
@@ -33,6 +35,8 @@ export const useGameStore = create<GameState>((set) => ({
     winner: null,
     winnerPositions: null,
     playing: false,
+    rematchRequested: false,
+    opponentRematchRequested: false,
     match: null,
 
     setMatch: (match) => set({ match }),
@@ -48,6 +52,8 @@ export const useGameStore = create<GameState>((set) => ({
         winner: null,
         winnerPositions: null,
         playing: false,
+        rematchRequested: false,
+        opponentRematchRequested: false,
         match: null
     }),
 }));
@@ -56,5 +62,13 @@ export const sendMove = (position: number) => {
     const { match } = useGameStore.getState();
     if (match && nakamaSocket) {
         nakamaSocket.sendMatchState(match.match_id, 4, JSON.stringify({ position })); // 4 is OpCode.MOVE
+    }
+};
+
+export const sendRematch = () => {
+    const { match } = useGameStore.getState();
+    if (match && nakamaSocket) {
+        useGameStore.getState().updateState({ rematchRequested: true });
+        nakamaSocket.sendMatchState(match.match_id, 8, ""); // 8 is OpCode.REMATCH
     }
 };
