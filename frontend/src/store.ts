@@ -51,7 +51,6 @@ export const useGameStore = create<GameState>((set) => ({
         board: Array(9).fill(null),
         marks: {},
         ourMark: Mark.UNDEFINED,
-        ourUsername: '',
         opponentUsername: '',
         currentTurn: Mark.UNDEFINED,
         deadline: 0,

@@ -42,6 +42,7 @@ function App() {
   }, [state.playing, state.deadline]);
 
   const handleLogin = async () => {
+    if (authStatus === 'loading') return;
     const trimmed = usernameInput.trim();
     if (!USERNAME_REGEX.test(trimmed)) {
       setUsernameError("3\u201316 characters, letters, numbers, or underscores only");
