@@ -144,6 +144,7 @@ function App() {
     sendMove(index);
   };
 
+  /* ── Auth Screen ── */
   if (authStatus !== "authenticated") {
     return (
       <div className="auth-container">
@@ -158,6 +159,7 @@ function App() {
     );
   }
 
+  /* ── Matchmaking Screen ── */
   if (!state.match) {
     return (
       <div className="matchmaking-hub">
@@ -169,7 +171,7 @@ function App() {
             </div>
           ) : (
             <>
-              <div className="mode-selectors" style={{ marginTop: '20px' }}>
+              <div className="mode-selectors">
                 <div className="mode-card" onClick={() => findMatch(false)}>
                   <h3>Classic</h3>
                   <p>Normal time per turn</p>
@@ -188,27 +190,29 @@ function App() {
                 </div>
               </div>
 
-              <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+              <div className="join-section">
                 <input
                   type="text"
-                  placeholder="Match ID"
+                  className="join-input"
+                  placeholder="Enter Match ID to join"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value)}
-                  style={{ padding: '10px', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '5px', width: '80%' }}
                 />
-                <button className="btn-primary" onClick={joinCustomMatch} style={{ width: '80%' }}>Join Custom Room</button>
+                <button className="btn-primary" onClick={joinCustomMatch}>Join Room</button>
               </div>
 
-              <div className="leaderboard-section" style={{ marginTop: '30px', textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '8px' }}>
-                <h3 style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '10px', marginBottom: '10px' }}>Top Players</h3>
-                {leaderboard.length === 0 ? <p style={{ opacity: 0.8 }}>No records yet.</p> : (
-                  <table style={{ width: '100%', color: 'white', borderCollapse: 'collapse' }}>
+              <div className="leaderboard-section">
+                <h3>Top Players</h3>
+                {leaderboard.length === 0 ? (
+                  <p style={{ opacity: 0.6, fontSize: '0.9rem' }}>No records yet.</p>
+                ) : (
+                  <table className="leaderboard-table">
                     <tbody>
                       {leaderboard.map((r, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <td style={{ padding: '8px 4px', width: '30px', opacity: 0.6 }}>#{idx + 1}</td>
-                          <td style={{ padding: '8px 4px' }}>{r.username || r.owner_id.substring(0, 8)}</td>
-                          <td style={{ padding: '8px 4px', textAlign: 'right', fontWeight: 'bold' }}>{r.score} wins</td>
+                        <tr key={idx}>
+                          <td style={{ width: '30px', opacity: 0.5 }}>#{idx + 1}</td>
+                          <td>{r.username || r.owner_id.substring(0, 8)}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{r.score} wins</td>
                         </tr>
                       ))}
                     </tbody>
@@ -222,6 +226,7 @@ function App() {
     );
   }
 
+  /* ── Game Screen ── */
   return (
     <div className="game-container">
       <div className="header-info">
@@ -238,7 +243,7 @@ function App() {
               <div className="turn-indicator" style={{ visibility: state.currentTurn === state.ourMark ? 'visible' : 'hidden' }}>
                 Your Turn
               </div>
-              <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>{timerText}</div>
+              <div className="timer-text">{timerText}</div>
             </>
           )}
           {!state.playing && state.winner !== null && (
@@ -258,11 +263,9 @@ function App() {
       </div>
 
       {!state.playing && state.winner === null && (
-        <div style={{ textAlign: 'center', marginBottom: '20px', color: 'white' }}>
+        <div className="match-id-share">
           <p>Share this Match ID with your friend:</p>
-          <code style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', userSelect: 'all', fontSize: '12px' }}>
-            {state.match.match_id}
-          </code>
+          <code>{state.match.match_id}</code>
         </div>
       )}
 
@@ -289,7 +292,7 @@ function App() {
           <div className="winner-title">
             {state.winner === state.ourMark ? 'VICTORY' : state.winner === Mark.UNDEFINED ? 'DRAW' : 'DEFEAT'}
           </div>
-          <div style={{ display: 'flex', gap: '15px' }}>
+          <div className="winner-actions">
             <button className="btn-primary" onClick={() => sendRematch()}>
               {state.rematchRequested ? 'Waiting...' : 'Rematch'}
             </button>
