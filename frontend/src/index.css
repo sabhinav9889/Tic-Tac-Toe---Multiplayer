@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@700&display=swap');
 
-/* ─── Design Tokens ─── */
 :root {
   --bg-color: #0B0E14;
   --panel-bg: rgba(20, 25, 35, 0.6);
@@ -15,10 +14,7 @@
   --glass-blur: blur(12px);
 }
 
-/* ─── Reset & Base ─── */
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -31,22 +27,26 @@ body {
     radial-gradient(circle at 15% 50%, rgba(108, 92, 231, 0.15), transparent 25%),
     radial-gradient(circle at 85% 30%, rgba(46, 213, 115, 0.1), transparent 25%);
   color: var(--text-main);
+  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   justify-content: center;
-  -webkit-tap-highlight-color: transparent;
+  align-items: center;
 }
 
 #root {
   width: 100%;
-  max-width: 960px;
+  max-width: 1200px;
+  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 0 16px;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: 'Outfit', sans-serif;
 }
 
@@ -62,111 +62,136 @@ input {
   font-family: 'Inter', sans-serif;
 }
 
-/* ─── Reusable ─── */
-.glass-panel {
-  background: var(--panel-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  padding: 24px 20px;
-  box-shadow: var(--shadow);
-  text-align: center;
-  width: 100%;
-}
-
-.btn-primary {
-  background: var(--accent-color);
-  color: white;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 1rem;
-  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
-  width: 100%;
-}
-
-.btn-primary:hover {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-/* ─── Auth Screen ─── */
+/* ── Auth Screen ── */
 .auth-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   flex: 1;
-  padding: 20px 0;
 }
 
-.auth-container .glass-panel {
-  max-width: 420px;
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  width: 100%;
+  max-width: 480px;
 }
 
 .auth-container h1 {
-  font-size: clamp(1.5rem, 5vw, 2.2rem);
+  font-size: 1.8rem;
   margin-bottom: 8px;
 }
 
 .auth-container p {
   color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
-.auth-container .btn-primary {
+.btn-primary {
+  background: var(--accent-color);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 1.1rem;
   margin-top: 16px;
-  max-width: 280px;
-  margin-left: auto;
-  margin-right: auto;
+  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
 }
 
-/* ─── Matchmaking Hub ─── */
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Username input */
+.username-field {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.username-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  text-align: center;
+}
+
+.username-input::placeholder {
+  color: var(--text-muted);
+}
+
+.username-input:focus {
+  border-color: var(--accent-color);
+}
+
+.username-error {
+  display: block;
+  color: var(--mark-x);
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
+
+/* ── Matchmaking ── */
 .matchmaking-hub {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: 20px 0;
+  gap: 24px;
 }
 
 .matchmaking-hub .glass-panel {
-  max-width: 600px;
+  max-width: 640px;
 }
 
 .matchmaking-hub h2 {
-  font-size: clamp(1.2rem, 4vw, 1.6rem);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .mode-selectors {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
 }
 
 .mode-card {
-  padding: 20px 12px;
-  border-radius: 14px;
+  padding: 20px 14px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--panel-border);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
   text-align: center;
 }
 
 .mode-card:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: var(--accent-color);
-  transform: translateY(-3px);
+  transform: translateY(-4px);
 }
 
 .mode-card:active {
@@ -175,13 +200,12 @@ input {
 
 .mode-card h3 {
   color: var(--text-main);
-  font-size: 0.95rem;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .mode-card p {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 /* Join section */
@@ -194,13 +218,13 @@ input {
 }
 
 .join-input {
+  width: 100%;
   padding: 12px;
   background: rgba(255, 255, 255, 0.08);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   font-size: 0.95rem;
-  width: 100%;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -221,23 +245,21 @@ input {
 .leaderboard-section {
   margin-top: 24px;
   text-align: left;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 16px;
-  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
 }
 
 .leaderboard-section h3 {
-  font-size: 0.95rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .leaderboard-table {
   width: 100%;
   color: white;
   border-collapse: collapse;
-  font-size: 0.9rem;
 }
 
 .leaderboard-table td {
@@ -248,15 +270,15 @@ input {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* ─── Game Screen ─── */
+/* ── Game Board ── */
 .game-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: 20px;
-  padding: 12px 0;
+  gap: 24px;
+  padding: 16px 0;
 }
 
 .header-info {
@@ -264,12 +286,12 @@ input {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 340px;
-  padding: 12px 16px;
+  max-width: 360px;
+  padding: 14px 16px;
   background: var(--panel-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid var(--panel-border);
   gap: 8px;
 }
@@ -278,19 +300,26 @@ input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.85rem;
   min-width: 0;
 }
 
+.player-name {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .player-score {
-  font-size: 1.6rem;
+  font-size: 2rem;
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  line-height: 1.2;
 }
 
 .turn-indicator {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--accent-color);
   animation: pulse 2s infinite;
   white-space: nowrap;
@@ -302,22 +331,19 @@ input {
 }
 
 .timer-text {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   opacity: 0.8;
 }
 
-/* Board */
 .board {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 100px);
+  gap: 12px;
   background: var(--panel-border);
-  padding: 8px;
-  border-radius: 14px;
+  padding: 12px;
+  border-radius: 16px;
   box-shadow: var(--shadow);
-  width: min(340px, 85vw);
-  aspect-ratio: 1;
 }
 
 .cell {
@@ -327,10 +353,9 @@ input {
   justify-content: center;
   align-items: center;
   font-family: 'Outfit', sans-serif;
-  font-size: clamp(2.2rem, 10vw, 3.5rem);
+  font-size: 4rem;
   cursor: pointer;
   transition: background 0.2s;
-  aspect-ratio: 1;
 }
 
 .cell:hover:not(.occupied) {
@@ -351,9 +376,6 @@ input {
 .match-id-share {
   text-align: center;
   color: white;
-  font-size: 0.9rem;
-  max-width: 340px;
-  width: 100%;
 }
 
 .match-id-share p {
@@ -361,22 +383,22 @@ input {
 }
 
 .match-id-share code {
-  display: block;
+  display: inline-block;
   background: rgba(0, 0, 0, 0.5);
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 5px;
   user-select: all;
   -webkit-user-select: all;
-  font-size: 0.75rem;
+  font-size: 12px;
   word-break: break-all;
-  line-height: 1.4;
+  max-width: 100%;
 }
 
 /* Winner overlay */
 .winner-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(11, 14, 20, 0.9);
+  background: rgba(11, 14, 20, 0.85);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   display: flex;
@@ -388,8 +410,8 @@ input {
 }
 
 .winner-title {
-  font-size: clamp(2.5rem, 12vw, 4rem);
-  margin-bottom: 24px;
+  font-size: 4rem;
+  margin-bottom: 20px;
   background: linear-gradient(135deg, #6C5CE7, #2ED573);
   -webkit-background-clip: text;
   background-clip: text;
@@ -398,79 +420,123 @@ input {
 
 .winner-actions {
   display: flex;
-  gap: 12px;
+  gap: 15px;
 }
 
 .winner-actions .btn-primary {
   width: auto;
-  min-width: 130px;
 }
 
-/* ─── Tablet & Desktop ─── */
-@media (min-width: 480px) {
-  #root {
-    padding: 20px 24px;
+/* ── Responsive: phones (< 480px) ── */
+@media (max-width: 479px) {
+  .auth-container h1 {
+    font-size: 1.4rem;
   }
 
   .glass-panel {
-    padding: 32px 28px;
-    border-radius: 20px;
-  }
-
-  .mode-card {
     padding: 24px 16px;
-  }
-
-  .mode-card h3 {
-    font-size: 1.05rem;
-    margin-bottom: 6px;
-  }
-
-  .mode-card p {
-    font-size: 0.85rem;
-  }
-
-  .board {
-    width: min(380px, 80vw);
-    gap: 10px;
-    padding: 10px;
     border-radius: 16px;
   }
 
+  .mode-card {
+    padding: 16px 10px;
+  }
+
+  .mode-card h3 {
+    font-size: 0.9rem;
+  }
+
+  .mode-card p {
+    font-size: 0.75rem;
+  }
+
+  .board {
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(3, 80px);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .cell {
+    font-size: 3rem;
+  }
+
   .header-info {
-    max-width: 380px;
-    padding: 14px 20px;
+    max-width: 280px;
+    padding: 10px 12px;
   }
 
   .player-score {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
 
-  .btn-primary {
-    padding: 14px 28px;
-    font-size: 1.05rem;
+  .player-name {
+    max-width: 60px;
+    font-size: 0.7rem;
   }
 
-  .auth-container .btn-primary {
-    width: auto;
+  .turn-indicator {
+    font-size: 0.85rem;
+  }
+
+  .winner-title {
+    font-size: 2.5rem;
+  }
+
+  .winner-actions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 200px;
   }
 
   .winner-actions .btn-primary {
-    min-width: 150px;
+    width: 100%;
+  }
+
+  .btn-primary {
+    padding: 12px 20px;
+    font-size: 1rem;
   }
 
   .game-container {
-    gap: 28px;
+    gap: 16px;
   }
 }
 
+/* ── Responsive: small phones (< 360px) ── */
+@media (max-width: 359px) {
+  .board {
+    grid-template-columns: repeat(3, 70px);
+    grid-template-rows: repeat(3, 70px);
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .cell {
+    font-size: 2.5rem;
+  }
+
+  .header-info {
+    max-width: 250px;
+  }
+}
+
+/* ── Responsive: tablets (480px–767px) ── */
+@media (min-width: 480px) and (max-width: 767px) {
+  .board {
+    grid-template-columns: repeat(3, 90px);
+    grid-template-rows: repeat(3, 90px);
+  }
+}
+
+/* ── Responsive: tablets and up (768px+) ── */
 @media (min-width: 768px) {
   .glass-panel {
-    padding: 40px 36px;
+    padding: 40px;
   }
 
   .matchmaking-hub .glass-panel {
-    max-width: 700px;
+    max-width: 720px;
   }
 
   .mode-card {
@@ -486,15 +552,14 @@ input {
     font-size: 0.9rem;
   }
 
-  .board {
-    width: 400px;
-    gap: 12px;
-    padding: 12px;
+  .header-info {
+    max-width: 500px;
+    padding: 20px;
   }
 
-  .header-info {
-    max-width: 420px;
-    padding: 16px 24px;
+  .player-name {
+    max-width: 120px;
+    font-size: 0.85rem;
   }
 
   .player-score {
@@ -502,7 +567,7 @@ input {
   }
 
   .turn-indicator {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   .game-container {
