@@ -212,6 +212,9 @@ function App() {
     return (
       <div className="matchmaking-hub">
         <div className="glass-panel">
+          <div className="welcome-bar">
+            <span>Welcome, <strong>{state.ourUsername}</strong></span>
+          </div>
           <h2>Select Game Mode</h2>
           {matchmaking ? (
             <div style={{ marginTop: '20px' }}>

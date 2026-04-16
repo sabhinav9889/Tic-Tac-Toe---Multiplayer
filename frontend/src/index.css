@@ -167,6 +167,18 @@ input {
   max-width: 640px;
 }
 
+.welcome-bar {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.welcome-bar strong {
+  color: var(--accent-color);
+}
+
 .matchmaking-hub h2 {
   margin-bottom: 16px;
 }
@@ -304,9 +316,10 @@ input {
 }
 
 .player-name {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  max-width: 80px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -471,8 +484,8 @@ input {
   }
 
   .player-name {
-    max-width: 60px;
-    font-size: 0.7rem;
+    max-width: 70px;
+    font-size: 0.8rem;
   }
 
   .turn-indicator {
@@ -558,8 +571,8 @@ input {
   }
 
   .player-name {
-    max-width: 120px;
-    font-size: 0.85rem;
+    max-width: 140px;
+    font-size: 1rem;
   }
 
   .player-score {
