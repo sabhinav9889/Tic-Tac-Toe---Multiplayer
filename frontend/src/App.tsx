@@ -3,16 +3,12 @@ import { authenticate, nakamaSession, nakamaSocket, nakamaClient } from './nakam
 import { useGameStore, sendMove, sendRematch, Mark } from './store';
 import './index.css';
 
-const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,16}$/;
-
 function App() {
   const [authStatus, setAuthStatus] = useState<"idle" | "loading" | "authenticated">("idle");
   const [matchmaking, setMatchmaking] = useState(false);
   const [timerText, setTimerText] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [usernameInput, setUsernameInput] = useState(() => localStorage.getItem("ttt_username") || "");
-  const [usernameError, setUsernameError] = useState("");
 
   const state = useGameStore();
 
@@ -43,17 +39,10 @@ function App() {
 
   const handleLogin = async () => {
     if (authStatus === 'loading') return;
-    const trimmed = usernameInput.trim();
-    if (!USERNAME_REGEX.test(trimmed)) {
-      setUsernameError("3\u201316 characters, letters, numbers, or underscores only");
-      return;
-    }
-    setUsernameError("");
 
     try {
       setAuthStatus("loading");
-      localStorage.setItem("ttt_username", trimmed);
-      const session = await authenticate(trimmed);
+      const session = await authenticate();
 
       useGameStore.getState().updateState({ ourUsername: session.username || trimmed });
 
@@ -180,21 +169,6 @@ function App() {
         <div className="glass-panel">
           <h1>LILA TIC-TAC-TOE</h1>
           <p>Multiplayer Server Authoritative Arena</p>
-          <div className="username-field">
-            <input
-              type="text"
-              className="username-input"
-              placeholder="Enter username"
-              value={usernameInput}
-              onChange={(e) => {
-                setUsernameInput(e.target.value);
-                setUsernameError("");
-              }}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleLogin(); }}
-              maxLength={16}
-            />
-            {usernameError && <span className="username-error">{usernameError}</span>}
-          </div>
           <button
             className="btn-primary"
             onClick={handleLogin}
@@ -212,9 +186,6 @@ function App() {
     return (
       <div className="matchmaking-hub">
         <div className="glass-panel">
-          <div className="welcome-bar">
-            <span>Welcome, <strong>{state.ourUsername}</strong></span>
-          </div>
           <h2>Select Game Mode</h2>
           {matchmaking ? (
             <div style={{ marginTop: '20px' }}>
