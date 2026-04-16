@@ -44,7 +44,7 @@ function App() {
       setAuthStatus("loading");
       const session = await authenticate();
 
-      useGameStore.getState().updateState({ ourUsername: session.username || trimmed });
+      useGameStore.getState().updateState({ ourUsername: session.username || '' });
 
       nakamaSocket!.onmatchdata = (result) => {
         const opCode = result.op_code;
